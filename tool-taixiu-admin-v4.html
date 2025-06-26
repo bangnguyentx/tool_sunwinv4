@@ -1,0 +1,228 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>🎯 Tool Dự Đoán Tài Xỉu (Admin + IP Tracking)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #1c0f1c;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+    }
+    #notice {
+      background: #220033;
+      border-left: 6px solid #ff66cc;
+      padding: 20px;
+      margin: 20px;
+      border-radius: 8px;
+    }
+    #key-section, .tool, .admin-panel {
+      background: rgba(0,0,0,0.85);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px auto;
+      max-width: 600px;
+      box-shadow: 0 0 10px #ff66cc;
+    }
+    input, select, button {
+      width: 100%;
+      margin-top: 10px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    button {
+      background: #ff4081;
+      color: white;
+      border: none;
+    }
+    .result { margin-top: 20px; font-size: 18px; text-align: center; }
+    .ip-list, .key-list {
+      background: #2e003e;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    .ip-list div, .key-list div {
+      margin-bottom: 5px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .facebook-link {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+    .facebook-link a {
+      color: #66ccff;
+    }
+  </style>
+</head>
+<body>
+  <div id="notice">
+    <p>👉 Ưu tiên đánh theo API Sunwin nếu đối nhau</p>
+    <p>👉 Nếu Local S.W gãy 2 tay thì tay 3 đánh mạnh (mạnh chứ không all)</p>
+    <p>👉 Tỉ lệ tổng dưới 60% nên đánh nhử</p>
+    <p>👉 PHẢI CHẠY 4-6 TAY TRƯỚC KHI CHƠI</p>
+    <div class="facebook-link">
+      📌 Liên hệ Admin: <a href="https://m.facebook.com/bang.nguyen.17040/" target="_blank">Bằng Nguyễn</a>
+    </div>
+  </div>
+
+  <div id="key-section">
+    <h2>🔐 Nhập Key Truy Cập Tool</h2>
+    <input type="password" id="key-input" placeholder="Nhập key...">
+    <button onclick="checkKey()">✅ Xác Nhận</button>
+    <div id="key-message" style="margin-top:10px; color: red;"></div>
+    <div id="adminName">By Bang Nguyen</div>
+  </div>
+
+  <div class="tool" id="tool-box" style="display:none;">
+    <h2>🎲 TOOL DỰ ĐOÁN TÀI XỈU</h2>
+    <input type="text" id="maphien" placeholder="🔢 Nhập mã phiên...">
+    <button onclick="duDoan()">🚀 Dự đoán</button>
+    <div class="result" id="localResult">🧠 Đang chờ kết quả Local S.W...</div>
+    <div class="result" id="apiResult">🌐 Đang chờ kết quả API...</div>
+    <div class="result" id="finalResult" style="color:yellow; font-weight:bold;"></div>
+  </div>
+
+  <div class="admin-panel" id="adminPanel" style="display:none;">
+    <h3>🔧 Quản lý key & IP</h3>
+    <input type="text" id="newKey" placeholder="Nhập key mới...">
+    <select id="duration">
+      <option value="24h">24 giờ</option>
+      <option value="1w">1 tuần</option>
+      <option value="1m">1 tháng</option>
+      <option value="forever">Vĩnh viễn</option>
+    </select>
+    <button onclick="addKey()">➕ Tạo Key</button>
+    <div id="adminMsg" style="margin-top:10px; font-size:14px;"></div>
+
+    <h4>Danh sách Key:</h4>
+    <div class="key-list" id="keyList"></div>
+
+    <h4>IP/Thiết bị đang sử dụng:</h4>
+    <div class="ip-list" id="ipList">
+      <div>192.168.1.2 <button onclick="blockDevice('192.168.1.2')">Chặn</button></div>
+      <div>192.168.1.3 <button onclick="blockDevice('192.168.1.3')">Chặn</button></div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <script>
+    const activeKeys = {
+      "AdminBang8": "forever",
+      "DEMO123": "1w"
+    };
+    const blockedDevices = [];
+
+    function checkKey() {
+      const inputKey = document.getElementById("key-input").value.trim();
+      const msg = document.getElementById("key-message");
+
+      if (blockedDevices.includes("192.168.1.2")) {
+        window.location.href = "https://coronet.eu.com";
+        return;
+      }
+
+      if (inputKey === "AdminBang8") {
+        msg.textContent = "✅ Đăng nhập quyền Admin!";
+        document.getElementById("key-section").style.display = "none";
+        document.getElementById("tool-box").style.display = "block";
+        document.getElementById("adminPanel").style.display = "block";
+        renderKeyList();
+        return;
+      }
+
+      if (activeKeys[inputKey]) {
+        msg.textContent = "✅ Mở khóa thành công!";
+        document.getElementById("key-section").style.display = "none";
+        document.getElementById("tool-box").style.display = "block";
+      } else {
+        msg.textContent = "❌ Key không hợp lệ!";
+      }
+    }
+
+    function addKey() {
+      const newKey = document.getElementById("newKey").value.trim();
+      const duration = document.getElementById("duration").value;
+      const msg = document.getElementById("adminMsg");
+
+      if (!newKey) {
+        msg.style.color = "red";
+        msg.textContent = "❌ Key không được để trống!";
+        return;
+      }
+
+      activeKeys[newKey] = duration;
+      msg.style.color = "lightgreen";
+      msg.textContent = `✅ Đã tạo key: ${newKey} với thời hạn: ${duration}`;
+      renderKeyList();
+    }
+
+    function renderKeyList() {
+      const container = document.getElementById("keyList");
+      container.innerHTML = '';
+      for (const key in activeKeys) {
+        if (key === "AdminBang8") continue;
+        container.innerHTML += `<div>${key} - ${activeKeys[key]} <button onclick="deleteKey('${key}')">❌</button></div>`;
+      }
+    }
+
+    function deleteKey(key) {
+      delete activeKeys[key];
+      renderKeyList();
+    }
+
+    function blockDevice(ip) {
+      if (!blockedDevices.includes(ip)) {
+        blockedDevices.push(ip);
+        alert("Đã chặn thiết bị: " + ip);
+      }
+    }
+
+    async function duDoan() {
+      const maphien = document.getElementById("maphien").value.trim();
+      const result1 = document.getElementById("localResult");
+      const result2 = document.getElementById("apiResult");
+      const final = document.getElementById("finalResult");
+
+      if (!maphien) {
+        result1.textContent = "❌ Mã phiên không được để trống!";
+        result2.textContent = "";
+        final.textContent = "";
+        return;
+      }
+
+      const hash = CryptoJS.MD5(maphien).toString();
+      const value1 = parseInt(hash, 16) % 100;
+      const tai1 = value1;
+      const xiu1 = 100 - value1;
+      result1.innerHTML = `🧠 Local S.W: TÀI ${tai1}% | XỈU ${xiu1}%`;
+
+      try {
+        const response = await fetch("https://sunwv1-wanglin.up.railway.app/api/taixiu_ws");
+        const data = await response.json();
+
+        if (!data.prediction || !data.current_session) {
+          result2.textContent = "❌ API không trả về dữ liệu!";
+          return;
+        }
+
+        result2.innerHTML = `🌐 API SUNWIN<br>Mã phiên: ${data.current_session}<br>Kết quả: ${data.current_result}<br>Dự đoán: ${data.prediction}`;
+        const tai2 = data.prediction.toLowerCase().includes("tài") ? 60 : 40;
+        const finalTai = Math.round((tai1 + tai2) / 2);
+        const finalXiu = 100 - finalTai;
+        final.innerHTML = `🎯 KẾT HỢP: TÀI ${finalTai}% | XỈU ${finalXiu}%`;
+      } catch (e) {
+        result2.textContent = "❌ Lỗi kết nối API!";
+      }
+    }
+  </script>
+</body>
+</html>
